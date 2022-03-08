@@ -38,6 +38,43 @@ function ubu_changes_require(){
     sudo apt install -y libglib2.0-dev libncurses-dev libuuid1 uuid-dev libjson-c-dev
 }
 
+function ubu_install_sriov(){
+    # Switch to Xorg for Ubuntu 21.04
+    if [[ $(lsb_release -rs) == "21.04" ]]; then
+        sed -i "s/\#WaylandEnable=false/WaylandEnable=false/g" /etc/gdm3/custom.conf
+    fi
+
+    sudo apt install -y net-tools openssh-server git make autoconf libtool meson vim v4l-utils pkg-config libpciaccess-dev cmake \
+                        python3-pip python3.10 llvm-12-dev libelf-dev bison flex wayland-protocols libwayland-dev libwayland-egl-backend-dev \
+                        libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
+                        libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev libkmod-dev libprocps-dev libdw-dev libpixman-1-dev \
+                        libcairo2-dev libudev-dev libgudev-1.0-0 gtk-doc-tools sshfs mesa-utils xutils-dev libunwind-dev libxml2-dev doxygen \
+                        xmlto cmake libpciaccess-dev graphviz libjpeg-dev libwebp-dev libsystemd-dev libdbus-glib-1-dev libpam0g-dev \
+                        freerdp2-dev libxkbcommon-dev libinput-dev libxcb-shm0-dev libxcb-xv0-dev libxcb-keysyms1-dev libxcb-randr0-dev \
+                        libxcb-composite0-dev libxcursor-dev liblcms2-dev libpango1.0-dev libglfw3-dev libxcb-composite0-dev libxcursor-dev \
+                        libgtk-3-dev libsdl2-dev virtinst virt-viewer virt-manager libspice-server-dev libusb-dev libxfont-dev libxkbfile-dev \
+                        libepoxy-dev rpm libncurses5-dev libncursesw5-dev liblz4-tool git-lfs uuid mtools python3-usb python3-pyudev \
+                        libjson-c-dev libfdt-dev socat bridge-utils uml-utilities python-dev libcap-ng-dev libusb-1.0-0-dev nasm acpidump \
+                        iasl libseccomp-dev libtasn1-6-dev libgnutls28-dev expect gawk
+    sudo apt install -y python3-mako
+
+    # Clean up any existing folders
+    function del_existing_folder() {
+        if [ -d "$1" ]; then
+            echo "Deleting existing folder $1"
+            rm -fr $1
+        fi
+    }
+    del_existing_folder $CIV_WORK_DIR/media
+    del_existing_folder $CIV_WORK_DIR/gstreamer
+    del_existing_folder $CIV_WORK_DIR/graphics
+    del_existing_folder $CIV_WORK_DIR/neo
+
+    # Start setup
+    source $CIV_WORK_DIR/scripts/sriov_setup_host.sh
+
+}
+
 function ubu_install_qemu_gvt(){
     sudo apt purge -y "^qemu"
     sudo apt autoremove -y
@@ -170,12 +207,15 @@ function install_vm_manager() {
 }
 
 function ubu_enable_host_gvt(){
-    if [[ ! `cat /etc/default/grub` =~ "i915.enable_gvt=1 intel_iommu=on i915.force_probe=*" ]]; then
+    if [[ ! `cat /etc/default/grub` =~ "i915.enable_gvt=1" ]]; then
         read -p "The grub entry in '/etc/default/grub' will be updated for enabling GVT-g and GVT-d, do you want to continue? [Y/n]" res
         if [ x$res = xn ]; then
-            exit 0
+            return
         fi
-        sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"i915.enable_gvt=1 intel_iommu=on i915.force_probe=*/g" /etc/default/grub
+        if [[ ! `cat /etc/default/grub` =~ "intel_iommu=on i915.force_probe=*" ]]; then
+            sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"intel_iommu=on i915.force_probe=* /g" /etc/default/grub
+        fi
+        sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"i915.enable_gvt=1 /g" /etc/default/grub
         update-grub
 
         echo -e "\nkvmgt\nvfio-iommu-type1\nvfio-mdev\n" >> /etc/initramfs-tools/modules
@@ -186,24 +226,21 @@ function ubu_enable_host_gvt(){
 }
 
 function ubu_enable_host_sriov(){
-   if [[ ! `cat /etc/default/grub` =~ "i915.enable_guc=0x7" ]]; then
+    if [[ ! `cat /etc/default/grub` =~ "i915.enable_guc=0x7 udmabuf.list_limit=8192" ]]; then
         read -p "The grub entry in '/etc/default/grub' will be updated for enabling SRIOV, do you want to continue?     [Y/n]" res
         if [ x$res = xn ]; then
-            exit 0
+            return
         fi
-	sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"i915.enable_guc=0x7 udmabuf.list_limit=8192  /g" /etc/default/grub
+        if [[ ! `cat /etc/default/grub` =~ "intel_iommu=on i915.force_probe=*" ]]; then
+            sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"intel_iommu=on i915.force_probe=* /g" /etc/default/grub
+        fi
+        sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"i915.enable_guc=0x7 udmabuf.list_limit=8192 /g" /etc/default/grub
         update-grub
 
         echo -e "\nkvmgt\nvfio-iommu-type1\nvfio-mdev\n" >> /etc/initramfs-tools/modules
         update-initramfs -u -k all
 
-        # Switch to Xorg for Ubuntu 21.04
-        if [[ $(lsb_release -rs) == "21.04" ]]; then
-            sed -i "s/\#WaylandEnable=false/WaylandEnable=false/g" /etc/gdm3/custom.conf
-        fi
-
         reboot_required=1
-
     fi
 }
 
@@ -583,6 +620,7 @@ check_network
 check_kernel_version
 
 ubu_changes_require
+ubu_install_sriov
 ubu_install_qemu_gvt
 ubu_build_ovmf_gvt
 ubu_enable_host_gvt
