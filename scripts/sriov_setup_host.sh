@@ -28,7 +28,8 @@ source /etc/environment
 git lfs install --skip-smudge
 git clone https://gitlab.freedesktop.org/mesa/drm.git media/libdrm
 cd media/libdrm
-git checkout refs/tags/libdrm-2.4.107
+git checkout refs/tags/libdrm-2.4.110
+git apply $CIV_WORK_DIR/vertical_patches/host/libdrm/*.patch
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -37,7 +38,7 @@ cd $WrkDir
 
 git clone https://github.com/intel/libva.git media/libva
 cd media/libva
-git checkout refs/tags/2.13.0
+git checkout refs/tags/2.14.0
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -46,7 +47,7 @@ cd $WrkDir
 
 git clone https://github.com/intel/libva-utils.git media/libva-utils
 cd media/libva-utils
-git checkout refs/tags/2.13.0
+git checkout refs/tags/2.14.0
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -55,7 +56,8 @@ cd $WrkDir
 
 git clone https://github.com/intel/gmmlib.git media/gmmlib
 cd media/gmmlib
-git checkout refs/tags/intel-gmmlib-21.3.3
+git checkout refs/tags/intel-gmmlib-22.0.3
+git apply $CIV_WORK_DIR/vertical_patches/host/gmmlib/*.patch
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=$PrefixPath ../
 make -j "$(nproc)"
@@ -66,9 +68,8 @@ cd $WrkDir
 
 git clone https://github.com/intel/media-driver.git media/media-driver
 cd media/media-driver
-git checkout refs/tags/intel-media-21.3.5
+git checkout refs/tags/intel-media-22.1.1
 git apply $CIV_WORK_DIR/vertical_patches/host/media/media-driver/*.patch
-
 mkdir build_media && cd build_media
 cmake ../ -DCMAKE_INSTALL_PREFIX=$PrefixPath
 make -j "$(nproc)"
@@ -95,7 +96,7 @@ echo "    UFKEY_INTERNAL\Report"                 | sudo tee -a /etc/igfx_user_fe
 #onevpl-gpu
 git clone https://github.com/oneapi-src/oneVPL-intel-gpu.git media/oneVPL-gpu
 cd media/oneVPL-gpu
-git checkout refs/tags/intel-onevpl-21.3.4
+git checkout refs/tags/intel-onevpl-22.2.0
 git apply $CIV_WORK_DIR/vertical_patches/host/media/oneVPL-gpu/*.patch
 
 mkdir build && cd build
@@ -108,7 +109,7 @@ cd $WrkDir
 #onevpl
 git clone https://github.com/oneapi-src/oneVPL.git media/oneVPL
 cd media/oneVPL
-git checkout refs/tags/v2021.6.0
+git checkout refs/tags/v2022.0.3
 git apply $CIV_WORK_DIR/vertical_patches/host/media/oneVPL/*.patch
 mkdir build && cd build
 cmake ../ -DCMAKE_INSTALL_PREFIX=$PrefixPath
@@ -131,6 +132,7 @@ cd $WrkDir
 git clone https://github.com/GStreamer/gst-plugins-base.git gstreamer/gst-plugins-base
 cd gstreamer/gst-plugins-base
 git checkout ce937bcb21412d7b3539a2da0509cc96260562f8
+git apply $CIV_WORK_DIR/vertical_patches/host/gstreamer/gst-plugins-base/*.patch
 meson build --prefix=$PrefixPath --libdir=$LibPath -Dgtk_doc=disabled
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -140,6 +142,7 @@ cd $WrkDir
 git clone https://github.com/GStreamer/gst-plugins-good.git gstreamer/gst-plugins-good
 cd gstreamer/gst-plugins-good
 git checkout 20bbeb5e37666c53c254c7b08470ad8a00d97630
+git apply $CIV_WORK_DIR/vertical_patches/host/gstreamer/gst-plugins-good/*.patch
 meson build --prefix=$PrefixPath --libdir=$LibPath -Dgtk_doc=disabled
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -149,7 +152,8 @@ cd $WrkDir
 git clone https://github.com/GStreamer/gst-plugins-bad.git gstreamer/gst-plugins-bad
 cd gstreamer/gst-plugins-bad
 git checkout ca8068c6d793d7aaa6f2e2cc6324fdedfe2f33fa
-meson build --prefix=$PrefixPath --libdir=$LibPath -Dgtk_doc=disabled
+git apply $CIV_WORK_DIR/vertical_patches/host/gstreamer/gst-plugins-bad/*.patch
+meson build --prefix=$PrefixPath --libdir=$LibPath -Dgtk_doc=disabled -Dmsdk=disabled -Dmfx_api=oneVPL
 ninja -C build && sudo ninja -C build install
 check_build_error
 cd $WrkDir
@@ -194,7 +198,7 @@ check_build_error
 cd $WrkDir
 # Create mesa_driver.sh
 echo "is_vf=\`dmesg | grep \"SR-IOV VF\"\`"         | sudo tee -a /etc/profile.d/mesa_driver.sh
-echo "if [[ \$is_vf =~ \"VF\" ]]; then"                | sudo tee -a /etc/profile.d/mesa_driver.sh
+echo "if [[ \$is_vf =~ \"VF\" ]]; then"             | sudo tee -a /etc/profile.d/mesa_driver.sh
 echo "    export MESA_LOADER_DRIVER_OVERRIDE=pl111" | sudo tee -a /etc/profile.d/mesa_driver.sh
 echo "else"                                         | sudo tee -a /etc/profile.d/mesa_driver.sh
 echo "    export MESA_LOADER_DRIVER_OVERRIDE=iris"  | sudo tee -a /etc/profile.d/mesa_driver.sh
@@ -204,7 +208,6 @@ echo "fi"                                           | sudo tee -a /etc/profile.d
 #OpenCL
 mkdir neo
 cd neo
-wget https://github.com/intel/compute-runtime/releases/download/21.47.21710/intel-gmmlib-devel_21.3.3_amd64.deb
 wget https://github.com/intel/compute-runtime/releases/download/21.47.21710/intel-gmmlib_21.3.3_amd64.deb
 wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.9389/intel-igc-core_1.0.9389_amd64.deb
 wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.9389/intel-igc-opencl_1.0.9389_amd64.deb
