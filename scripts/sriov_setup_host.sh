@@ -28,7 +28,7 @@ source /etc/environment
 git lfs install --skip-smudge
 git clone https://gitlab.freedesktop.org/mesa/drm.git media/libdrm
 cd media/libdrm
-git checkout refs/tags/libdrm-2.4.110
+git checkout refs/tags/libdrm-2.4.107
 git apply $CIV_WORK_DIR/vertical_patches/host/libdrm/*.patch
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
@@ -38,7 +38,7 @@ cd $WrkDir
 
 git clone https://github.com/intel/libva.git media/libva
 cd media/libva
-git checkout refs/tags/2.14.0
+git checkout refs/tags/2.13.0
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -47,7 +47,7 @@ cd $WrkDir
 
 git clone https://github.com/intel/libva-utils.git media/libva-utils
 cd media/libva-utils
-git checkout refs/tags/2.14.0
+git checkout refs/tags/2.13.0
 meson build/ --prefix=$PrefixPath --libdir=$LibPath
 ninja -C build && sudo ninja -C build install
 check_build_error
@@ -56,7 +56,7 @@ cd $WrkDir
 
 git clone https://github.com/intel/gmmlib.git media/gmmlib
 cd media/gmmlib
-git checkout refs/tags/intel-gmmlib-22.0.3
+git checkout refs/tags/intel-gmmlib-22.0.1
 git apply $CIV_WORK_DIR/vertical_patches/host/gmmlib/*.patch
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=$PrefixPath ../
@@ -96,7 +96,7 @@ echo "    UFKEY_INTERNAL\Report"                 | sudo tee -a /etc/igfx_user_fe
 #onevpl-gpu
 git clone https://github.com/oneapi-src/oneVPL-intel-gpu.git media/oneVPL-gpu
 cd media/oneVPL-gpu
-git checkout refs/tags/intel-onevpl-22.2.0
+git checkout refs/tags/intel-onevpl-22.1.0
 git apply $CIV_WORK_DIR/vertical_patches/host/media/oneVPL-gpu/*.patch
 
 mkdir build && cd build
@@ -208,10 +208,10 @@ echo "fi"                                           | sudo tee -a /etc/profile.d
 #OpenCL
 mkdir neo
 cd neo
-wget https://github.com/intel/compute-runtime/releases/download/21.47.21710/intel-gmmlib_21.3.3_amd64.deb
-wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.9389/intel-igc-core_1.0.9389_amd64.deb
-wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.9389/intel-igc-opencl_1.0.9389_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/21.47.21710/intel-opencl-icd_21.47.21710_amd64.deb
-wget https://github.com/intel/compute-runtime/releases/download/21.47.21710/intel-level-zero-gpu_1.2.21710_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/22.10.22597/intel-gmmlib_22.0.2_amd64.deb
+wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.10409/intel-igc-core_1.0.10409_amd64.deb
+wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.10409/intel-igc-opencl_1.0.10409_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/22.10.22597/intel-opencl-icd_22.10.22597_amd64.deb
+wget https://github.com/intel/compute-runtime/releases/download/22.10.22597/intel-level-zero-gpu_1.3.22597_amd64.deb
 sudo dpkg -i *.deb
 cd $WrkDir
