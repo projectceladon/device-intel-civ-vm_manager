@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Copyright (c) 2022 Intel Corporation.
+# All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 RED='\033[0;31m'
 NC='\033[0m'
 GREEN='\033[0;32m'
@@ -213,5 +219,6 @@ wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.
 wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.10409/intel-igc-opencl_1.0.10409_amd64.deb
 wget https://github.com/intel/compute-runtime/releases/download/22.10.22597/intel-opencl-icd_22.10.22597_amd64.deb
 wget https://github.com/intel/compute-runtime/releases/download/22.10.22597/intel-level-zero-gpu_1.3.22597_amd64.deb
+sudo apt install ocl-icd-libopencl1
 sudo dpkg -i *.deb
 cd $WrkDir
