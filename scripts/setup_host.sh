@@ -320,6 +320,11 @@ function ubu_update_fw(){
     reboot_required=1
 }
 
+function setup_remote_infer() {
+    $CIV_WORK_DIR/scripts/setup_rinfer_host.sh
+    reboot_required=1
+}
+
 function check_os() {
     local version=`cat /proc/version`
 
@@ -597,6 +602,7 @@ function show_help() {
     printf "\t-h  show this help message\n"
     printf "\t-u  specify Host OS's UI, support \"headless\" and \"GUI\" eg. \"-u headless\" or \"-u GUI\"\n"
     printf "\t--auto-start auto start CiV guest when Host boot up.\n"
+    printf "\t-i  enable remote inferencing\n"
 }
 
 function parse_arg() {
@@ -624,6 +630,10 @@ function parse_arg() {
 
             -t)
                 start_thermal_daemon || return -1
+                ;;
+
+            -i)
+                setup_remote_infer || return -1
                 ;;
 
             --auto-start)
