@@ -427,9 +427,9 @@ function ubu_install_swtpm() {
 }
 
 function ubu_install_libssl() {
-    wget -N  http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
-    sudo dpkg -i libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
-    rm libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
+    sudo add-apt-repository -y 'deb http://security.ubuntu.com/ubuntu focal-security main'
+    sudo apt-get -y install libssl1.1
+    sudo add-apt-repository -y --remove 'deb http://security.ubuntu.com/ubuntu focal-security main'
 }
 
 function ubu_update_bt_fw() {
