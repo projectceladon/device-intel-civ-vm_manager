@@ -41,7 +41,7 @@ function ubu_changes_require(){
 function ubu_install_qemu_gvt(){
     sudo apt purge -y "^qemu"
     sudo apt autoremove -y
-    sudo apt install -y git libfdt-dev libpixman-1-dev libssl-dev vim socat libsdl2-dev libspice-server-dev autoconf libtool xtightvncviewer tightvncserver x11vnc uuid-runtime uuid uml-utilities bridge-utils python-dev liblzma-dev libc6-dev libegl1-mesa-dev libepoxy-dev libdrm-dev libgbm-dev libaio-dev libusb-1.0-0-dev libgtk-3-dev bison libcap-dev libattr1-dev flex libvirglrenderer-dev build-essential gettext libegl-mesa0 libegl-dev libglvnd-dev libgl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev libegl1 gcc g++ pkg-config libpulse-dev libgl1-mesa-dri
+    sudo apt install -y git libfdt-dev libpixman-1-dev libssl-dev vim socat libsdl2-dev libspice-server-dev autoconf libtool xtightvncviewer tightvncserver x11vnc uuid-runtime uuid uml-utilities bridge-utils liblzma-dev libc6-dev libegl1-mesa-dev libepoxy-dev libdrm-dev libgbm-dev libaio-dev libusb-1.0-0-dev libgtk-3-dev bison libcap-dev libattr1-dev flex libvirglrenderer-dev build-essential gettext libegl-mesa0 libegl-dev libglvnd-dev libgl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev libegl1 gcc g++ pkg-config libpulse-dev libgl1-mesa-dri
     sudo apt install -y ninja-build libcap-ng-dev
 
     #Create QEMU_CACHE_DIR if it doesnt exists
@@ -403,33 +403,33 @@ function setup_sof() {
 }
 
 function ubu_install_swtpm() {
-    TPMS_VER=v0.9.0
-    TPMS_LIB=libtpms-0.9.0
-    SWTPM_VER=v0.7.0
-    SWTPM=swtpm-0.7.0
+    #install libtpms and swtpm
+    sudo apt-get -y install libtpms-dev swtpm
 
-    #install libtpms
-    apt-get -y install automake autoconf gawk
-    [ ! -f $TPMS_VER.tar.gz ] && wget https://github.com/stefanberger/libtpms/archive/$TPMS_VER.tar.gz -P $CIV_WORK_DIR
-    [ -d $CIV_WORK_DIR/$TPMS_LIB ] && rm -rf  $CIV_WORK_DIR/$TPMS_LIB
-    tar zxvf $CIV_WORK_DIR/$TPMS_VER.tar.gz
-    cd $CIV_WORK_DIR/$TPMS_LIB
-    ./autogen.sh --with-tpm2 --with-openssl --prefix=/usr
-    make -j24
-    make -j24 check
-    make install
-    cd -
+    #update apparmor profile usr.bin.swtpm
+    sed -i "s/#include <tunables\/global>/include <tunables\/global>/g" /etc/apparmor.d/usr.bin.swtpm
+    sed -i "s/#include <abstractions\/base>/include <abstractions\/base>/g" /etc/apparmor.d/usr.bin.swtpm
+    sed -i "s/#include <abstractions\/openssl>/include <abstractions\/openssl>\n  include <abstractions\/libvirt-qemu>/g" /etc/apparmor.d/usr.bin.swtpm
+    sed -i "s/#include <local\/usr.bin.swtpm>/include <local\/usr.bin.swtpm>/g" /etc/apparmor.d/usr.bin.swtpm
 
-    #install swtpm
-    apt-get -y install net-tools libseccomp-dev libtasn1-6-dev libgnutls28-dev expect libjson-glib-dev
-    [ ! -f $SWTPM_VER.tar.gz ] && wget https://github.com/stefanberger/swtpm/archive/$SWTPM_VER.tar.gz -P $CIV_WORK_DIR
-    [ -d $CIV_WORK_DIR/$SWTPM ] && rm -rf  $CIV_WORK_DIR/$SWTPM
-    tar zxvf $CIV_WORK_DIR/$SWTPM_VER.tar.gz
-    cd $CIV_WORK_DIR/$SWTPM
-    ./autogen.sh --with-openssl --prefix=/usr
-    make -j24
-    make install
-    cd -
+    #update local apparmor profile usr.bin.swtpm
+    local_swtpm_profile=("owner /home/**/vtpm0/.lock wk,"
+                         "owner /home/**/vtpm0/swtpm-sock w,"
+                         "owner /home/**/vtpm0/TMP2-00.permall rw,"
+                         "owner /home/**/vtpm0/tpm2-00.permall rw,")
+
+    for rule in "${local_swtpm_profile[@]}"; do
+        if [[ ! `cat /etc/apparmor.d/local/usr.bin.swtpm` =~ "$rule" ]]; then
+            echo -e "$rule" | sudo tee -a /etc/apparmor.d/local/usr.bin.swtpm
+        fi
+    done
+    reboot_required=1
+}
+
+function ubu_install_libssl() {
+    wget -N  http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
+    sudo dpkg -i libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
+    rm libssl1.1_1.1.1l-1ubuntu1.3_amd64.deb
 }
 
 function ubu_update_bt_fw() {
@@ -602,6 +602,7 @@ create_aaf_dir
 
 prepare_required_scripts
 ubu_install_swtpm
+ubu_install_libssl
 ubu_update_bt_fw
 set_sleep_inhibitor
 
