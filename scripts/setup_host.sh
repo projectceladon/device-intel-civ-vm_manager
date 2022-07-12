@@ -575,6 +575,10 @@ function parse_arg() {
     done
 }
 
+function setup_civ_ini() {
+        $CIV_WORK_DIR/scripts/setup_civ_ini.sh
+}
+
 function create_aaf_dir() {
         mkdir -p $CIV_WORK_DIR/scripts/aaf
 }
@@ -599,6 +603,7 @@ ubu_update_fw
 
 install_vm_manager
 create_aaf_dir
+setup_civ_ini
 
 prepare_required_scripts
 ubu_install_swtpm
