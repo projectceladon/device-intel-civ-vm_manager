@@ -17,6 +17,7 @@ QEMU_CACHE_DIR="$HOME/.cache/civ/qemu"
 CIV_WORK_DIR=$(pwd)
 CIV_GOP_DIR=$CIV_WORK_DIR/GOP_PKG
 CIV_VERTICAl_DIR=$CIV_WORK_DIR/vertical_patches/host
+VM_MANAGER_VERSION=v0.7.1
 
 #---------      Functions    -------------------
 function error() {
@@ -159,7 +160,11 @@ function install_vm_manager_deb(){
 function install_vm_manager_src() {
     #Try to build from source code
     sudo apt-get install --yes make gcc
-    git clone https://github.com/projectceladon/vm_manager.git || return -1
+    if [ ! -z $VM_MANAGER_VERSION ]; then
+        git clone -b $VM_MANAGER_VERSION --single-branch https://github.com/projectceladon/vm_manager.git
+    else
+        git clone https://github.com/projectceladon/vm_manager.git || return -1
+    fi
     cd vm_manager/
     make || return -1
     sudo make install || return -1
@@ -170,7 +175,7 @@ function install_vm_manager_src() {
 function install_vm_manager() {
     sudo apt-get update
     sudo apt-get install --yes libglib2.0-dev libncurses-dev libuuid1 uuid-dev libjson-c-dev wget lsb-release git
-    install_vm_manager_deb || install_vm_manager_src
+    install_vm_manager_src
     if [ "$?" -ne 0 ]; then
         echo "Failed to install vm-manager!"
         echo "Please download and install mannually from: https://github.com/projectceladon/vm_manager/releases/latest"
