@@ -9,7 +9,7 @@ set -eE
 
 #---------      Global variable     -------------------
 reboot_required=0
-QEMU_REL="qemu-7.0.0"
+QEMU_REL="qemu-7.1.0"
 
 #Directory to keep versions of qemu which can be reused instead of downloading again
 QEMU_CACHE_DIR="$HOME/.cache/civ/qemu"
@@ -114,6 +114,7 @@ function ubu_build_ovmf_gvt(){
     git clone https://github.com/tianocore/edk2.git
     cd $CIV_WORK_DIR/edk2
     git checkout -b stable202111 edk2-stable202111
+    git submodule update --init
 
     patch -p1 < $CIV_WORK_DIR/patches/ovmf/0001-OvmfPkg-add-IgdAssignmentDxe.patch
     if [ -d $CIV_GOP_DIR ]; then
@@ -128,8 +129,6 @@ function ubu_build_ovmf_gvt(){
             patch -p1 < $i
         done
     fi
-
-    git submodule update --init
 
     source ./edksetup.sh
     make -C BaseTools/
