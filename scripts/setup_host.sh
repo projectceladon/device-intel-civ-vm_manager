@@ -189,8 +189,9 @@ function install_vm_manager() {
 
 function ubu_enable_host_gvt(){
 
-    if [[ ! `cat /etc/default/grub` =~ "i915.enable_guc=0x7 udmabuf.list_limit=8192" ]] &&
+    if [[ ! `cat /etc/default/grub` =~ "i915.enable_guc="(0x)?0*"7" ]] &&
        [[ ! `cat /etc/default/grub` =~ "i915.enable_gvt=1" ]]; then
+
         read -p "The grub entry in '/etc/default/grub' will be updated for enabling GVT-g and GVT-d, do you want to continue? [Y/n]" res
         if [ x$res = xn ]; then
             return
