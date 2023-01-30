@@ -71,9 +71,17 @@ function ubu_install_qemu_gvt(){
         for i in $CIV_GOP_DIR/qemu/*.patch; do patch -p1 < $i; done
     fi
 
-    sriov_qemu_patch_num=$(ls $CIV_WORK_DIR/sriov_patches/qemu/*.patch 2> /dev/null | wc -l)
+    sriov_qemu_cve_patch_num=$(ls $CIV_WORK_DIR/sriov_patches/qemu/cve/*.patch 2> /dev/null | wc -l)
+    if [ "$sriov_qemu_cve_patch_num" != "0" ]; then
+        for i in $CIV_WORK_DIR/sriov_patches/qemu/cve/*.patch; do
+            echo "applying qemu patch $i"
+            patch -p1 < $i
+        done
+    fi
+
+    sriov_qemu_patch_num=$(ls $CIV_WORK_DIR/sriov_patches/qemu/qemu/*.patch 2> /dev/null | wc -l)
     if [ "$sriov_qemu_patch_num" != "0" ]; then
-        for i in $CIV_WORK_DIR/sriov_patches/qemu/*.patch; do
+        for i in $CIV_WORK_DIR/sriov_patches/qemu/qemu/*.patch; do
             echo "applying qemu patch $i"
             patch -p1 < $i
         done
