@@ -29,10 +29,6 @@ function error() {
 function ubu_changes_require(){
     echo "Please make sure your apt is working"
     echo "If you run the installation first time, reboot is required"
-    read -p "QEMU version will be replaced (it could be recovered by 'apt purge ^qemu, apt install qemu'), do you want to continue? [Y/n]" res
-    if [ x$res = xn ]; then
-        return 1
-    fi
     sudo apt install -y wget mtools ovmf dmidecode python3-usb python3-pyudev pulseaudio jq
 
     # Install libs for vm-manager
@@ -200,10 +196,6 @@ function ubu_enable_host_gvt(){
     if [[ ! `cat /etc/default/grub` =~ "i915.enable_guc="(0x)?0*"7" ]] &&
        [[ ! `cat /etc/default/grub` =~ "i915.enable_gvt=1" ]]; then
 
-        read -p "The grub entry in '/etc/default/grub' will be updated for enabling GVT-g and GVT-d, do you want to continue? [Y/n]" res
-        if [ x$res = xn ]; then
-            return
-        fi
         if [[ ! `cat /etc/default/grub` =~ "intel_iommu=on i915.force_probe=*" ]]; then
             sed -i "s/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"intel_iommu=on i915.force_probe=* /g" /etc/default/grub
         fi
@@ -308,12 +300,7 @@ function check_sriov_setup() {
 
 function ask_reboot(){
     if [ $reboot_required -eq 1 ];then
-        read -p "Reboot is required, do you want to reboot it NOW? [y/N]" res
-        if [ x$res = xy ]; then
-            reboot
-        else
-            echo "Please reboot system later to take effect"
-        fi
+       echo "Please reboot system to take effect"
     fi
 }
 
