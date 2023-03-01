@@ -17,7 +17,7 @@ QEMU_CACHE_DIR="$HOME/.cache/civ/qemu"
 CIV_WORK_DIR=$(pwd)
 CIV_GOP_DIR=$CIV_WORK_DIR/GOP_PKG
 CIV_VERTICAl_DIR=$CIV_WORK_DIR/vertical_patches/host
-VM_MANAGER_VERSION=v0.7.1
+VM_MANAGER_VERSION=celadon/s/mr0/stable
 
 #---------      Functions    -------------------
 function error() {
