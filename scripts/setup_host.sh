@@ -10,6 +10,7 @@ set -eE
 #---------      Global variable     -------------------
 reboot_required=0
 QEMU_REL="qemu-7.1.0"
+skip_install_qemu=false
 
 #Directory to keep versions of qemu which can be reused instead of downloading again
 QEMU_CACHE_DIR="$HOME/.cache/civ/qemu"
@@ -36,6 +37,10 @@ function ubu_changes_require(){
 }
 
 function ubu_install_qemu_gvt(){
+    if [ $skip_install_qemu = true ]; then
+        echo "Skip ubu_install_qemu_gvt"
+        return
+    fi
     sudo apt purge -y "^qemu"
     sudo apt autoremove -y
     sudo apt install -y git libfdt-dev libpixman-1-dev libssl-dev vim socat libsdl2-dev libspice-server-dev autoconf libtool xtightvncviewer tightvncserver x11vnc uuid-runtime uuid uml-utilities bridge-utils liblzma-dev libc6-dev libegl1-mesa-dev libepoxy-dev libdrm-dev libgbm-dev libaio-dev libusb-1.0-0-dev libgtk-3-dev bison libcap-dev libattr1-dev flex libvirglrenderer-dev build-essential gettext libegl-mesa0 libegl-dev libglvnd-dev libgl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev libegl1 gcc g++ pkg-config libpulse-dev libgl1-mesa-dri
@@ -569,6 +574,10 @@ function parse_arg() {
             --auto-start)
                 install_auto_start_service "$2" || return -1
                 shift
+                ;;
+
+            --bsp)
+                skip_install_qemu=true
                 ;;
 
             -?*)
