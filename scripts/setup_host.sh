@@ -180,6 +180,7 @@ function install_vm_manager_src() {
         git clone https://github.com/projectceladon/vm_manager.git || return -1
     fi
     cd vm_manager/
+    git apply $CIV_WORK_DIR/vertical_patches/host/vm-manager/*.patch
     make || return -1
     sudo make install || return -1
     cd -
