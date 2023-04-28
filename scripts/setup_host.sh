@@ -18,7 +18,7 @@ QEMU_CACHE_DIR="$HOME/.cache/civ/qemu"
 CIV_WORK_DIR=$(pwd)
 CIV_GOP_DIR=$CIV_WORK_DIR/GOP_PKG
 CIV_VERTICAl_DIR=$CIV_WORK_DIR/vertical_patches/host
-VM_MANAGER_VERSION=celadon/s/mr0/stable
+VM_MANAGER_VERSION=v1.2.3
 
 #---------      Functions    -------------------
 function error() {
@@ -179,11 +179,14 @@ function install_vm_manager_src() {
     else
         git clone https://github.com/projectceladon/vm_manager.git || return -1
     fi
+    sudo apt install -y cmake
     cd vm_manager/
     git apply $CIV_WORK_DIR/vertical_patches/host/vm-manager/*.patch
-    make || return -1
-    sudo make install || return -1
-    cd -
+    mkdir build && cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build . --config Release
+    cp src/vm-manager /usr/bin/
+    cd $CIV_WORK_DIR
     rm -rf vm_manager/
 }
 
