@@ -19,6 +19,10 @@ CIV_WORK_DIR=$(pwd)
 CIV_GOP_DIR=$CIV_WORK_DIR/GOP_PKG
 CIV_VERTICAl_DIR=$CIV_WORK_DIR/vertical_patches/host
 VM_MANAGER_VERSION=v1.2.3
+VSOCK_ID=3
+VM_NAME=Android-CIV1
+ADB_PORT=5555
+USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 
 #---------      Functions    -------------------
 function error() {
@@ -567,6 +571,11 @@ function parse_arg() {
                 shift
                 ;;
 
+            -n)
+                VM_NAME=$2
+                shift
+                ;;
+
             -t)
                 start_thermal_daemon || return -1
                 ;;
@@ -599,13 +608,40 @@ function parse_arg() {
 }
 
 function setup_civ_ini() {
-        $CIV_WORK_DIR/scripts/setup_civ_ini.sh
+        $CIV_WORK_DIR/scripts/setup_civ_ini.sh -v $1 -p $2 -n $3
 }
 
-function create_aaf_dir() {
-        mkdir -p $CIV_WORK_DIR/scripts/aaf
+function create_vm_dir() {
+        if [ -d $CIV_WORK_DIR/$VM_NAME ]
+        then
+                echo "Folder with name $VM_NAME already present. Delete and create new folder? Please enter yes/no"
+		read input
+		if [ $input = "yes" ]; then
+	                rm -rf $CIV_DIR/$VM_NAME
+	        else
+	                exit
+	        fi
+        fi
+        echo "Creating Dir: $CIV_WORK_DIR/$VM_NAME"
+        mkdir $CIV_WORK_DIR/$VM_NAME
 }
 
+function copy_files_for_vm() {
+    echo "Copying file: $CIV_WORK_DIR/$VM_NAME"
+    mkdir -p $CIV_WORK_DIR/$VM_NAME/scripts/aaf
+
+    req_files=("$CIV_WORK_DIR/OVMF.fd"
+                   "$CIV_WORK_DIR/scripts/rpmb_dev")
+    for file in ${req_files[@]}; do
+        if [ ! -f $file ]; then
+            echo "Error: $file file is missing"
+            exit -1
+        fi
+    done
+
+    cp $CIV_WORK_DIR/OVMF.fd $CIV_WORK_DIR/$VM_NAME/
+    cp $CIV_WORK_DIR/scripts/rpmb_dev $CIV_WORK_DIR/$VM_NAME/scripts/
+}
 
 #-------------    main processes    -------------
 
@@ -623,10 +659,11 @@ ubu_install_qemu_gvt
 ubu_build_ovmf_gvt
 ubu_enable_host_gvt
 ubu_update_fw
-
 install_vm_manager
-create_aaf_dir
-setup_civ_ini
+
+create_vm_dir
+setup_civ_ini $VSOCK_ID $ADB_PORT $VM_NAME
+copy_files_for_vm
 
 prepare_required_scripts
 ubu_install_swtpm

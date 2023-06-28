@@ -5,7 +5,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-WORK_DIR=$PWD
+WORK_DIR=$PWD/Android-CIV1
+
+function parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -n)
+                WORK_DIR=$PWD/$2
+                shift
+                ;;
+        esac
+        shift
+    done
+}
+
+parse_args "$@"
 
 [ $# -lt 1 ] && echo "Usage: $0 [caas-flashfiles-<variant>.zip] [caas-flashfile-<variant>.iso] [caas-flashfile-<variant>.iso.zip]" && exit -1
 
@@ -36,9 +50,9 @@ done
 
 if [ "$support_dedicated_data" = true ]
 then
-	qemu-img create -f qcow2 android.qcow2 8500M
+	qemu-img create -f qcow2 $WORK_DIR/android.qcow2 8500M
 else
-	qemu-img create -f qcow2 android.qcow2 32G
+	qemu-img create -f qcow2 $WORK_DIR/android.qcow2 32G
 fi
 
 decompress=flashfiles_decompress
@@ -102,7 +116,7 @@ qemu-system-x86_64 \
   -drive file=$virt_disk,id=udisk1,format=raw,if=none \
   -device usb-storage,drive=udisk1,bus=xhci.0 \
   -device virtio-scsi-pci,id=scsi0,addr=0x8 \
-  -drive file=./android.qcow2,if=none,format=qcow2,id=scsidisk1 \
+  -drive file=$WORK_DIR/android.qcow2,if=none,format=qcow2,id=scsidisk1 \
   -device scsi-hd,drive=scsidisk1,bus=scsi0.0 \
   -drive file=$ovmf_file,format=raw,if=pflash \
   -no-reboot \
