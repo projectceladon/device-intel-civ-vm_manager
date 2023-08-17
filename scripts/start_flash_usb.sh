@@ -126,4 +126,14 @@ qemu-system-x86_64 \
   -tpmdev emulator,id=tpm0,chardev=chrtpm \
   -device tpm-crb,tpmdev=tpm0 \
 
+if [ -f $WORK_DIR/../OVMF.fd ] ; then
+    if [ "$(md5sum $WORK_DIR/../OVMF.fd|awk '{print $1}')" != "$(md5sum $WORK_DIR/OVMF.fd|awk '{print $1}')" ]; then
+        cp $WORK_DIR/../OVMF.fd $WORK_DIR/
+    else
+        echo "CheckSum matches skipping"
+    fi
+else
+   echo "Error OVMF.fd file is missing"
+fi
+
 echo "Flashing is completed"
