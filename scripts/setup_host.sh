@@ -512,22 +512,24 @@ function ubu_update_wifi_fw(){
 function set_sleep_inhibitor() {
     sudo apt-get -y install python3-pip
     sudo pip3 install -U sleep-inhibitor
-    sudo sed -i 's/\/usr\/bin\/%p/\/usr\/local\/bin\/%p/' /usr/local/share/sleep-inhibitor/sleep-inhibitor.service
+
+    pythonversion="$(pip3 --version | grep -Po '^.*\(\K[^\)]*' | grep -Po '^.*\ \K[^\\n]*')"
+    sudo sed -i 's/\/usr\/bin\/%p/\/usr\/local\/bin\/%p/' /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.service
     #Download the plugin if not already
     sudo echo "#! /bin/sh
 if adb get-state 1>/dev/null 2>&1
 then
         state=\$(adb shell dumpsys power | grep -oE 'WAKE_LOCK')
-	if echo \"\$state\" | grep 'WAKE_LOCK'; then
+        if echo \"\$state\" | grep 'WAKE_LOCK'; then
                 exit 254
         else
                 exit 0
         fi
 else
         exit 0
-fi" > /usr/local/share/sleep-inhibitor/plugins/is-wakelock-active
-    sudo chmod a+x /usr/local/share/sleep-inhibitor/plugins/is-wakelock-active
-    sudo cp /usr/local/share/sleep-inhibitor/sleep-inhibitor.conf /etc/.
+fi" > /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/plugins/is-wakelock-active
+    sudo chmod a+x /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/plugins/is-wakelock-active
+    sudo cp /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.conf /etc/.
     sudo echo "plugins:
     #Inhibit sleep if wakelock is held
     - path: is-wakelock-active
@@ -535,7 +537,7 @@ fi" > /usr/local/share/sleep-inhibitor/plugins/is-wakelock-active
       what: sleep
       period: 0.01" > /etc/sleep-inhibitor.conf
     sudo sed -i 's/#*HandleSuspendKey=\w*/HandleSuspendKey=suspend/' /etc/systemd/logind.conf
-    sudo cp /usr/local/share/sleep-inhibitor/sleep-inhibitor.service /etc/systemd/system/.
+    sudo cp /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.service /etc/systemd/system/.
     reboot_required=1
 }
 
