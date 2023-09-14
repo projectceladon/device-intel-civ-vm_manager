@@ -177,6 +177,10 @@ function install_vm_manager_deb(){
 
 function install_vm_manager_src() {
     #Try to build from source code
+    if [ -d $CIV_WORK_DIR/vm_manager ]
+    then
+        rm -rf $CIV_WORK_DIR/vm_manager
+    fi
     sudo apt-get install --yes make gcc
     if [ ! -z $VM_MANAGER_VERSION ]; then
         git clone -b $VM_MANAGER_VERSION --single-branch https://github.com/projectceladon/vm_manager.git
@@ -619,7 +623,7 @@ function create_vm_dir() {
                 echo "Folder with name $VM_NAME already present. Delete and create new folder? Please enter yes/no"
 		read input
 		if [ $input = "yes" ]; then
-	                rm -rf $CIV_DIR/$VM_NAME
+	                rm -rf $CIV_WORK_DIR/$VM_NAME
 	        else
 	                exit
 	        fi
