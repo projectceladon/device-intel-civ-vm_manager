@@ -664,7 +664,6 @@ ubu_changes_require
 ubu_install_qemu_gvt
 ubu_build_ovmf_gvt
 ubu_enable_host_gvt
-ubu_update_fw
 install_vm_manager
 
 create_vm_dir
