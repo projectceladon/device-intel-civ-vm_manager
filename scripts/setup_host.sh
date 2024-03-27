@@ -9,7 +9,7 @@ set -eE
 
 #---------      Global variable     -------------------
 reboot_required=0
-QEMU_REL="qemu-8.0.0"
+QEMU_REL="qemu-8.2.1"
 skip_install_qemu=false
 
 #Directory to keep versions of qemu which can be reused instead of downloading again
