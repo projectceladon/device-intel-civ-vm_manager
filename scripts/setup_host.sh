@@ -153,7 +153,7 @@ function install_vm_manager_deb(){
     local os_ver=$(lsb_release -rs)
     local vm_repo="https://github.com/projectceladon/vm_manager/"
     local rtag=$(git ls-remote -t --refs ${vm_repo} | cut --delimiter='/' --fields=3  | tr '-' '~' | sort --version-sort | tail --lines=1)
-    local rdeb=vm-manager_${rtag}_ubuntu-${os_ver}.deb
+    local rdeb=vm-manager_${rtag}.deb
 
     [ -f ${rdeb} ] && rm -f ${rdeb}
 
@@ -507,10 +507,12 @@ function ubu_update_wifi_fw(){
 
 function set_sleep_inhibitor() {
     sudo apt-get -y install python3-pip
-    sudo pip3 install -U sleep-inhibitor
+    sudo apt install -y pipx
+    pipx ensurepath
+    sudo pipx install sleep-inhibitor
 
     pythonversion="$(pip3 --version | grep -Po '^.*\(\K[^\)]*' | grep -Po '^.*\ \K[^\\n]*')"
-    sudo sed -i 's/\/usr\/bin\/%p/\/usr\/local\/bin\/%p/' /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.service
+    sudo sed -i 's/\/usr\/bin\/%p/\/usr\/local\/bin\/%p/' /root/.local/share/pipx/venvs/sleep-inhibitor/lib/python$pythonversion/site-packages/sleep_inhibitor/sleep-inhibitor.service
     #Download the plugin if not already
     sudo echo "#! /bin/sh
 if adb get-state 1>/dev/null 2>&1
@@ -523,9 +525,9 @@ then
         fi
 else
         exit 0
-fi" > /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/plugins/is-wakelock-active
-    sudo chmod a+x /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/plugins/is-wakelock-active
-    sudo cp /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.conf /etc/.
+fi" > /root/.local/share/pipx/venvs/sleep-inhibitor/lib/python$pythonversion/site-packages/sleep_inhibitor/plugins/is-wakelock-active
+    sudo chmod a+x /root/.local/share/pipx/venvs/sleep-inhibitor/lib/python$pythonversion/site-packages/sleep_inhibitor/plugins/is-wakelock-active
+    sudo cp /root/.local/share/pipx/venvs/sleep-inhibitor/lib/python$pythonversion/site-packages/sleep_inhibitor/sleep-inhibitor.conf /etc/.
     sudo echo "plugins:
     #Inhibit sleep if wakelock is held
     - path: is-wakelock-active
@@ -533,7 +535,7 @@ fi" > /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/plugins/
       what: sleep
       period: 0.01" > /etc/sleep-inhibitor.conf
     sudo sed -i 's/#*HandleSuspendKey=\w*/HandleSuspendKey=suspend/' /etc/systemd/logind.conf
-    sudo cp /usr/local/lib/python$pythonversion/dist-packages/sleep_inhibitor/sleep-inhibitor.service /etc/systemd/system/.
+    sudo cp /root/.local/share/pipx/venvs/sleep-inhibitor/lib/python$pythonversion/site-packages/sleep_inhibitor/sleep-inhibitor.service /etc/systemd/system/.
     reboot_required=1
 }
 
